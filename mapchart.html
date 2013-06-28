@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no' />
+  <script src='http://api.tiles.mapbox.com/mapbox.js/v1.0.4/mapbox.js'></script>
+  <link href='http://api.tiles.mapbox.com/mapbox.js/v1.0.4/mapbox.css' rel='stylesheet' />
+  <!--[if lte IE 8]>
+    <link href='http://api.tiles.mapbox.com/mapbox.js/v1.0.4/mapbox.ie.css' rel='stylesheet' >
+  <![endif]-->
+  <style>
+    body { margin:0; padding:0; }
+    #map { position:absolute; top:0; bottom:0; width:100%; }
+  </style>
+</head>
+<body>
+<style>
+    #map-ui {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 100;
+    }
+
+    #map-ui ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    #map-ui a {
+        font-size: 13px;
+        background: #FFF;
+        color: #3C4E5A;
+        display: block;
+        margin: 0;
+        padding: 0;
+        border: 1px solid #BBB;
+        border-bottom-width: 0;
+        min-width: 138px;
+        padding: 10px;
+        text-decoration: none;
+    }
+
+    #map-ui a:hover {
+        background: #ECF5FA;
+    }
+
+    #map-ui li:last-child a {
+        border-bottom-width: 1px;
+        -webkit-border-radius: 0 0 3px 3px;
+        border-radius: 0 0 3px 3px;
+    }
+
+    #map-ui li:first-child a {
+        -webkit-border-radius: 3px 3px 0 0;
+        border-radius: 3px 3px 0 0;
+    }
+
+    #map-ui a.active {
+        background: #3887BE;
+        border-color: #3887BE;
+        color: #FFF;
+    }
+</style>
+<div id='map-ui'>
+    <ul>
+        <li><a href='#' id='filter-food'>show only food events</a></li>
+        <li><a href='#' class='active' id='filter-all'>show all events</a></li>
+    </ul>
+</div>
+<style>
+
+.my-div-icon{
+	//background-color : transparent;
+	font-size : x-small;
+}
+</style>
+<div id='map'></div>
+<div id='button'>button</div>
+<script type='text/javascript'>
+var map = L.mapbox.map('map','examples.map-20v6611k').setView([50.505, 30.57], 5);
+var circleRadius = 50;
+var t = 0;
+var circle = new L.CircleMarker(new L.LatLng(50.505,30.57), {
+        radius: circleRadius,
+        fillColor: "#ff7800",
+        color: "#000",
+        weight: 1,
+        opacity: 1,
+        fillOpacity: 1,
+        title: "test"
+    });
+map.addLayer(circle);
+var myIcon = L.divIcon({ 
+    iconSize: new L.Point(80, 10), 
+    iconAnchor: new L.Point(30, 10), 
+    html: 'one-long-word that goes',
+    className: 'my-div-icon'
+});
+// you can set .my-div-icon styles in CSS
+
+L.marker([50.505, 30.57], {icon: myIcon}).addTo(map)
+    .bindPopup('divIcon CSS3 popup. <br> Supposed to be easily stylable.');
+map.setView([50.505, 30.57], 5);
+// disable drag and zoom handlers
+map.dragging.disable();
+map.touchZoom.disable();
+map.doubleClickZoom.disable();
+map.scrollWheelZoom.disable();
+
+window.setInterval(function() {
+    // Reassign the features
+    circle.setRadius(circleRadius + (t%2)*20  );
+    t += 1;
+    
+}, 1000);
+
+var food = document.getElementById('filter-food');
+var all = document.getElementById('filter-all');
+
+    food.onclick = function(e) {
+        all.className = '';
+        this.className = 'active';
+        // The setFilter function takes a GeoJSON feature object
+        // and returns true to show it or false to hide it.
+        map.markerLayer.setFilter(function(f) {
+            return f.properties['marker-symbol'] === 'fast-food';
+        });
+        return false;
+    };
+
+    all.onclick = function() {
+        food.className = '';
+        this.className = 'active';
+        map.markerLayer.setFilter(function(f) {
+            // Returning true for all markers shows everything.
+            return true;
+        });
+        return false;
+    };
+</script>
+
+</body>
+</html>
+
