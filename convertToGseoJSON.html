@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+ <script src='http://api.tiles.mapbox.com/mapbox.js/v1.1.0/mapbox.js'></script>
+  <link href='http://api.tiles.mapbox.com/mapbox.js/v1.1.0/mapbox.css' rel='stylesheet' />
+  <!--[if lte IE 8]>
+    <link href='http://api.tiles.mapbox.com/mapbox.js/v1.1.0/mapbox.ie.css' rel='stylesheet' >
+  <![endif]-->
+  <script type="text/javascript" src="example-keyword-data.js"></script>
+  <style>
+    body { margin:0; padding:0; }
+    #map { position:absolute; top:0; bottom:0; width:100%; }
+  </style>
+</head>
+<body>
+
+
+<pre id='geojson'></pre>
+
+<script>
+ 
+  var gseojson = {};
+  gseojson["type"] = "FeatureCollection";
+  gseojson["features"] = []
+  var geoco = L.mapbox.geocoder('examples.map-20v6611k');
+  var alreadyMapped = {};
+  for (var i = 0; i < data.length;i++){
+    var element = {};
+    element["type"] = "Feature";
+    element["properties"] = data[i];
+    element["geometry"] = {}
+    element["geometry"]["type"] = "Point";
+    element["properties"]["marker-color"] = "#FFA500";
+    if (element["properties"]["strength"]<= 6){    
+        element["properties"]["marker-size"] = "small";
+    }else{
+        if (element["properties"]["strength"]<= 8){
+            element["properties"]["marker-size"] = "medium";
+        }else{
+            element["properties"]["marker-size"] = "large";
+        }
+    }  
+    element["properties"]["marker-symbol"] = "star";   
+    element["properties"]["title"] = element["properties"]["keyword"]; 
+    element["properties"]["description"] = element["properties"]["keyword"]+" : "+element["properties"]["strength"];     
+    var query = data[i]['location'];
+    if (alreadyMapped[query] == undefined){
+        geoco.query(data[i]['location'],function(error,result){
+            alert(1);
+            var res = [result.latlng[1],result.latlng[0]];            
+            element["geometry"]["coordinates"] = res;         
+            alreadyMapped[query] = res;
+            alert(2);
+        });
+    }else{       
+       alert(3);
+       element["geometry"]["coordinates"] =  alreadyMapped[query];              
+    }
+    alert(4);
+    gseojson["features"].push(element);     
+  }
+  while(gseojson["features"].length < data.length){
+    alert(gseojson["features"].length+"--"+data.length);
+  }
+  var geoJsonJS = "gseojson = "+JSON.stringify(gseojson)+";";
+  alert(geoJsonJS);
+  var geojsonDiv = document.getElementById("geojson");
+  geojsonDiv.innerHTML = geoJsonJS;
+
+</script>
+</body>
+</html>

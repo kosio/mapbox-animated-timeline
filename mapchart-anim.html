@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+ <script src='http://api.tiles.mapbox.com/mapbox.js/v1.1.0/mapbox.js'></script>
+  <link href='http://api.tiles.mapbox.com/mapbox.js/v1.1.0/mapbox.css' rel='stylesheet' />
+  <!--[if lte IE 8]>
+    <link href='http://api.tiles.mapbox.com/mapbox.js/v1.1.0/mapbox.ie.css' rel='stylesheet' >
+  <![endif]-->
+  <script type="text/javascript" src="example-gseojson-data.js"></script>
+  <style>
+    body { margin:0; padding:0; }
+    #map { position:absolute; top:0; bottom:0; width:100%; }
+  </style>
+</head>
+<body>
+<style>
+    .my-div-icon{
+        color:#FFA500;
+        //background: #FFFFFF;    
+    }
+    #map-ui {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 100;
+    }
+
+    #map-ui ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    #map-ui a {
+        font-size: 13px;
+        background: #FFF;
+        color: #3C4E5A;
+        display: block;
+        margin: 0;
+        padding: 0;
+        border: 1px solid #BBB;
+        border-bottom-width: 0;
+        min-width: 138px;
+        padding: 10px;
+        text-decoration: none;
+    }
+
+    #map-ui a:hover {
+        background: #ECF5FA;
+    }
+
+    #map-ui li:last-child a {
+        border-bottom-width: 1px;
+        -webkit-border-radius: 0 0 3px 3px;
+        border-radius: 0 0 3px 3px;
+    }
+
+    #map-ui li:first-child a {
+        -webkit-border-radius: 3px 3px 0 0;
+        border-radius: 3px 3px 0 0;
+    }
+
+    #map-ui a.active {
+        background: #3887BE;
+        border-color: #3887BE;
+        color: #FFF;
+    }
+    #year-month {
+  z-index:9999;
+  position:absolute;
+  bottom:10px;
+  left:10px;
+  font-size:36px;
+  font-weight:bold;
+  }
+</style>
+
+<div id='map-ui'>
+    <ul>
+        <li><a href='#' id='200001'>January, 2000</a></li>
+        <li><a href='#' id='200002'>February, 2000</a></li>
+        <li><a href='#' id='200003'>March, 2000</a></li>        
+        <li><a href='#' id='playstop'>Play</a></li>
+    </ul>
+</div>
+<div id='year-month'></div>
+<div id='map'></div>
+
+
+<script>
+  var lastActiveID = "";
+  var lastTextMarkers = L.layerGroup([]);
+  var map = L.mapbox.map('map', 'examples.map-20v6611k').setView([51.504, -0.109467], 6);
+  function clickMonth(month,markerLayer){
+     //alert("Clicked "+month);
+    var currentActiveID = '2000'+'0'+month;
+    if (lastActiveID === currentActiveID){
+       return;
+    }
+    if (lastActiveID !== ""){
+       var last = document.getElementById(lastActiveID);            
+       last.className = '';
+    }
+    this.className = 'active';
+    // The setFilter function takes a GeoJSON feature object
+    // and returns true to show it or false to hide it.
+    markerLayer.setFilter(function(f) {                 
+        return f.properties['month'] === month;
+        
+    });    
+    var textMarkers = [];
+    lastTextMarkers.clearLayers();
+    markerLayer.eachLayer(function(marker) { 
+        var markerProperties = marker.toGeoJSON().properties;           
+        var myIcon = L.divIcon({ 
+		    iconSize: new L.Point(80, 10), 
+		    iconAnchor: new L.Point(30, 10), 
+		    html: "<h2>"+markerProperties.keyword+"</h2>",
+		    className: 'my-div-icon'
+		});    
+        var textMarker = L.marker(marker.getLatLng(), {icon: myIcon});
+        textMarkers.push(textMarker);        
+    });
+    lastTextMarkers =  L.layerGroup(textMarkers).addTo(map);
+    document.getElementById('year-month').innerHTML = 'Month '+month+", Year 2000";
+    lastActiveID = currentActiveID;    
+  };
+   
+   var markerLayer = L.mapbox.markerLayer(gseojson)
+    // hide all markers
+    .setFilter(function() { return false; })
+    .addTo(map);
+   
+   for(var i=1;i < 4;i++){
+      var currentActiveID = '2000'+'0'+i;
+      var divel = document.getElementById(currentActiveID);      
+      divel.onclick = function(i,markerLayer) {
+         return function(e) {
+            clickMonth(i,markerLayer);
+            return false;
+	    };         
+    }(i,markerLayer);
+   }
+   var playstopDiv = document.getElementById("playstop");
+   var playstop = 0; 
+   playstopDiv.onclick = function(ml){return function() {
+          if (playstop == 0){
+             var step = 1;
+             playstopDiv.innerHTML = 'Stop';
+             playstop == 1;
+             playStep = window.setInterval(function() {
+              if (step < 4) {
+                  clickMonth(step,ml);
+                  step++;
+              } else {
+                  window.clearInterval(playStep);
+                  playstopDiv.innerHTML = 'Play';
+                  playstop == 0;
+              }
+            }, 2000);           
+            
+          }else{
+            window.clearInterval(playStep);
+            playstopDiv.innerHTML = 'Play';
+            playstop == 0;
+          }
+         
+      };
+     }(markerLayer);
+
+</script>
+</body>
+</html>
